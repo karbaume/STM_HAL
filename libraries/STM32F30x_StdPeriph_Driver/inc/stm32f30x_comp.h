@@ -406,7 +406,7 @@ typedef struct
 void COMP_DeInit(uint32_t COMP_Selection);
 
 /* Initialization and Configuration functions *********************************/
-void COMP_Init(uint32_t COMP_Selection, COMP_InitTypeDef* COMP_InitStruct);
+void COMP_Init(uint32_t COMP_Selection, COMP_InitTypeDef const * COMP_InitStruct);
 void COMP_StructInit(COMP_InitTypeDef* COMP_InitStruct);
 void COMP_Cmd(uint32_t COMP_Selection, FunctionalState NewState);
 void COMP_SwitchCmd(uint32_t COMP_Selection, FunctionalState NewState);

@@ -242,7 +242,7 @@ void COMP_DeInit(uint32_t COMP_Selection)
   * @note    COMP_Mode field is only applicable for STM32F303xC devices.
   * @retval None
   */
-void COMP_Init(uint32_t COMP_Selection, COMP_InitTypeDef* COMP_InitStruct)
+void COMP_Init(uint32_t COMP_Selection, COMP_InitTypeDef const * COMP_InitStruct)
 {
   uint32_t tmpreg = 0;
 

@@ -90,25 +90,26 @@ ${BINDIR}/${PRJ_NAME}.elf: ${OBJDIR}/main.o
 ${BINDIR}/${PRJ_NAME}.elf: ${OBJDIR}/versionfile.o
 
 # HAL Layer
-#${BINDIR}/${PRJ_NAME}.elf: ${OBJDIR}/Adc.o
-#${BINDIR}/${PRJ_NAME}.elf: ${OBJDIR}/AdcChannel.o
-#${BINDIR}/${PRJ_NAME}.elf: ${OBJDIR}/AdcWithDma.o
+${BINDIR}/${PRJ_NAME}.elf: ${OBJDIR}/Adc.o
+${BINDIR}/${PRJ_NAME}.elf: ${OBJDIR}/AdcChannel.o
+${BINDIR}/${PRJ_NAME}.elf: ${OBJDIR}/AdcWithDma.o
 #${BINDIR}/${PRJ_NAME}.elf: ${OBJDIR}/CRC.o
-#${BINDIR}/${PRJ_NAME}.elf: ${OBJDIR}/Dma.o
+${BINDIR}/${PRJ_NAME}.elf: ${OBJDIR}/Dma.o
 ${BINDIR}/${PRJ_NAME}.elf: ${OBJDIR}/Exti.o
 ${BINDIR}/${PRJ_NAME}.elf: ${OBJDIR}/Gpio.o
 ${BINDIR}/${PRJ_NAME}.elf: ${OBJDIR}/I2c.o
+${BINDIR}/${PRJ_NAME}.elf: ${OBJDIR}/Comp.o
 #${BINDIR}/${PRJ_NAME}.elf: ${OBJDIR}/Rtc.o
 #${BINDIR}/${PRJ_NAME}.elf: ${OBJDIR}/Spi.o
 #${BINDIR}/${PRJ_NAME}.elf: ${OBJDIR}/SpiWithDma.o
-#${BINDIR}/${PRJ_NAME}.elf: ${OBJDIR}/Tim.o
-#${BINDIR}/${PRJ_NAME}.elf: ${OBJDIR}/TimHalfBridge.o
-#${BINDIR}/${PRJ_NAME}.elf: ${OBJDIR}/TimHallDecoder.o
-#${BINDIR}/${PRJ_NAME}.elf: ${OBJDIR}/TimHallMeter.o
-#${BINDIR}/${PRJ_NAME}.elf: ${OBJDIR}/TimPwm.o
+${BINDIR}/${PRJ_NAME}.elf: ${OBJDIR}/Tim.o
+${BINDIR}/${PRJ_NAME}.elf: ${OBJDIR}/TimHalfBridge.o
+${BINDIR}/${PRJ_NAME}.elf: ${OBJDIR}/TimHallDecoder.o
+${BINDIR}/${PRJ_NAME}.elf: ${OBJDIR}/TimHallMeter.o
+${BINDIR}/${PRJ_NAME}.elf: ${OBJDIR}/TimPwm.o
 ${BINDIR}/${PRJ_NAME}.elf: ${OBJDIR}/Usart.o
 #${BINDIR}/${PRJ_NAME}.elf: ${OBJDIR}/UsartWithDma.o
-#${BINDIR}/${PRJ_NAME}.elf: ${OBJDIR}/PhaseCurrentSensor.o
+${BINDIR}/${PRJ_NAME}.elf: ${OBJDIR}/PhaseCurrentSensor.o
 
 # DEV Layer
 #${BINDIR}/${PRJ_NAME}.elf: ${OBJDIR}/Battery.o
@@ -118,7 +119,7 @@ ${BINDIR}/${PRJ_NAME}.elf: ${OBJDIR}/DebugInterface.o
 #${BINDIR}/${PRJ_NAME}.elf: ${OBJDIR}/TemperatureSensor.o
 #${BINDIR}/${PRJ_NAME}.elf: ${OBJDIR}/TemperatureSensor_Internal.o
 #${BINDIR}/${PRJ_NAME}.elf: ${OBJDIR}/TemperatureSensor_NTC.o
-#${BINDIR}/${PRJ_NAME}.elf: ${OBJDIR}/TimSensorBldc.o
+${BINDIR}/${PRJ_NAME}.elf: ${OBJDIR}/TimSensorBldc.o
 
 # OS Layer
 ${BINDIR}/${PRJ_NAME}.elf: ${OBJDIR}/CountingSemaphore.o
@@ -181,6 +182,8 @@ ${BINDIR}/${PRJ_NAME}.elf: ${OBJDIR}/stm32f30x_tim.o
 ${BINDIR}/${PRJ_NAME}.elf: ${OBJDIR}/stm32f30x_adc.o
 ${BINDIR}/${PRJ_NAME}.elf: ${OBJDIR}/stm32f30x_crc.o
 ${BINDIR}/${PRJ_NAME}.elf: ${OBJDIR}/stm32f30x_i2c.o
+${BINDIR}/${PRJ_NAME}.elf: ${OBJDIR}/stm32f30x_comp.o
+
 
 # freeRTOS
 ${BINDIR}/${PRJ_NAME}.elf: ${OBJDIR}/croutine.o
