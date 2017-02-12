@@ -56,12 +56,10 @@ extern char _version_end;
 const std::string VERSION(&_version_start, (&_version_end - &_version_start));
 
 app::DRV8302MotorController* g_motorCtrl = nullptr;
-dev::RealTimeDebugInterface* g_RTTerminal = nullptr;
 app::Mpu* g_Mpu = nullptr;
 
 int main(void)
-{	g_RTTerminal = new dev::RealTimeDebugInterface();
-
+{
     hal::initFactory<hal::Factory<hal::Gpio> >();
 //     hal::initFactory<hal::Factory<hal::Tim> >();
 //     hal::initFactory<hal::Factory<hal::HallDecoder> >();

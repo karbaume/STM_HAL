@@ -79,7 +79,7 @@ static constexpr const std::array<const Gpio, Gpio::__ENUM__SIZE + 1> Container 
       Gpio(Gpio::PHSTA,
            GPIOA_BASE,
            GPIO_InitTypeDef { GPIO_Pin_6, GPIO_Mode_AN, GPIO_Speed_50MHz, GPIO_OType_PP, GPIO_PuPd_NOPULL}),
-      Gpio(Gpio::MEMS_CLK,    // I2C3
+      Gpio(Gpio::MEMS_CLK, // I2C3
            GPIOA_BASE,
            GPIO_InitTypeDef { GPIO_Pin_8, GPIO_Mode_AF, GPIO_Speed_50MHz, GPIO_OType_PP, GPIO_PuPd_DOWN },
            GPIO_PinSource8,
@@ -137,7 +137,7 @@ static constexpr const std::array<const Gpio, Gpio::__ENUM__SIZE + 1> Container 
            GPIOC_BASE,
            GPIO_InitTypeDef { GPIO_Pin_3, GPIO_Mode_AN, GPIO_Speed_50MHz, GPIO_OType_PP, GPIO_PuPd_NOPULL}),
       // COMP3_OUT
-      Gpio(Gpio::MEMS_SDA,  //I2C3
+      Gpio(Gpio::MEMS_SDA, //I2C3
            GPIOC_BASE,
            GPIO_InitTypeDef { GPIO_Pin_9, GPIO_Mode_AF, GPIO_Speed_50MHz, GPIO_OType_PP, GPIO_PuPd_DOWN },
            GPIO_PinSource9,
