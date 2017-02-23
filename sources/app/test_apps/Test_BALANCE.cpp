@@ -274,23 +274,24 @@ constexpr const dev::Light& headLight = dev::Factory<dev::Light>::get<interface:
 
 void setup_LED(void)
 {
-    for (uint8_t i = 0; i < 255; i++) {
+    /*for (uint8_t i = 0; i < 255; i++) {
         backLight.setColor({0, 0, i});
         headLight.setColor({0, 0, i});
 
         os::ThisTask::sleep(std::chrono::milliseconds(10));
-    }
-    backLight.setColor({0, 0, 0});
-    headLight.setColor({0, 0, 0});
+    }*/
+    backLight.setColor({30, 30, 30});
+    headLight.setColor({30, 30, 30});
 }
 
 void loop_LED(void)
 {
     os::ThisTask::sleep(std::chrono::milliseconds(500));
-    backLight.setColor({50, 50, 50});
+    backLight.setColor({30, 30, 30});
+    headLight.setColor({30, 30, 30});
     os::ThisTask::sleep(std::chrono::milliseconds(500));
-
     backLight.setColor({0, 0, 0});
+    headLight.setColor({0, 0, 0});
 }
 
 const os::TaskEndless app::balanceTest("PMD_Demo", 4096,
