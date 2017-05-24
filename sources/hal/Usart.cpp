@@ -75,7 +75,10 @@ void Usart::USART_IRQHandler(const Usart& peripherie)
                                                                                                              reinterpret_cast
                                                                                                              <
                                                                                                               USART_TypeDef
-                                                                                                              *>(peripherie.mPeripherie))));
+                                                                                                              *>(
+                                                                                                                 peripherie
+                                                                                                                 .
+                                                                                                                 mPeripherie))));
         }
         USART_ClearITPendingBit(reinterpret_cast<USART_TypeDef*>(peripherie.mPeripherie), USART_IT_RXNE);
     }

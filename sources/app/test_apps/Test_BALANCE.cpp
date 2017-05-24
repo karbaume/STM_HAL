@@ -12,6 +12,8 @@
 #include "Light.h"
 #include <cmath>
 
+//#define GPIOTiming
+
 extern app::Mpu* g_mpu;
 extern dev::RealTimeDebugInterface* g_RTTerminal;
 extern app::VescMotorController* g_motorCtrlL;
@@ -20,6 +22,8 @@ extern app::VescMotorController* g_motorCtrlR;
 // Get any GPIO you want. You can access them by their name (DESCRIPTION)
 constexpr const hal::Gpio& led10 = hal::Factory<hal::Gpio>::get<hal::Gpio::LED_10>();
 constexpr const hal::Gpio& led3 = hal::Factory<hal::Gpio>::get<hal::Gpio::LED_3>();
+constexpr const hal::Gpio& led4 = hal::Factory<hal::Gpio>::get<hal::Gpio::LED_4>();
+constexpr const hal::Gpio& led5 = hal::Factory<hal::Gpio>::get<hal::Gpio::LED_5>();
 constexpr const hal::Gpio& userbutton = hal::Factory<hal::Gpio>::get<hal::Gpio::USER_BUTTON>();
 
 constexpr const hal::Adc::Channel& poti1 = hal::Factory<hal::Adc::Channel
@@ -56,10 +60,12 @@ float torqueRight = 0;
 float motorSpeedL = 0;
 float newMotorSpeedL = 0;
 
+//Other Variables:
+float sysTickOld = 0;
 float balancingEnabled = 0;
 
 // use global definition, to feed same time to the PID controller and the sleep function
-std::chrono::milliseconds WAITTIME = std::chrono::milliseconds(20);
+std::chrono::milliseconds WAITTIME = std::chrono::milliseconds(5);
 
 void receiveCommand(void)
 {
@@ -161,6 +167,9 @@ void receiveCommand(void)
 
 void setup(void)
 {
+	//SysTick aktualisieren, da sonst der erste Wert eventuell Mist ausgibt
+	sysTickOld = os::Task::getTickCount();
+
     //Als erstes Motoren ausschalten.
     g_RTTerminal->printf("Turn the motor off, first\n");
     torqueLeft = 0;
@@ -184,34 +193,39 @@ void setup(void)
 // This function will run forever
 void loop(void)
 {
+	//GPIO Timing Ausgabe
+#ifdef GPIOTiming
+	led5 = false;
+	led3 = true;
+#endif
+
     //Als erstes checken, ob der Taster am Lenker gedrückt ist und bei Bedarf LED 3 einschalten
     if (userbutton == true) {
         balancingEnabled = 1;
-        led3 = true;
     } else {
         balancingEnabled = 0;
-        led3 = false;
     }
 
-    g_RTTerminal->printf("Enabled: %6d ",
-                         static_cast<int32_t>(balancingEnabled));
 
+
+
+
+
+    sysTickOld = os::Task::getTickCount();
+
+    //Print current MPU6050 GravityVector to RTT
     Eigen::Vector3f gravity = g_mpu->getGravity();
-    g_RTTerminal->printf("Gravity: x:%6d, y:%6d, z:%6d ",
-                         static_cast<int32_t>(gravity.x() * 1000),
-                         static_cast<int32_t>(gravity.y() * 1000),
-                         static_cast<int32_t>(gravity.z() * 1000));
 
+
+    //Calculate Vehicle Angle in Deg. *57,296 converts from Rad to Deg. -90 maps Range from -90 > +90deg.
     VehicleAngle = (std::acos(gravity.x()) * 57296 / 1000 - 90);
-    g_RTTerminal->printf("Winkel: %6d mDeg ",
-                         static_cast<int32_t>(VehicleAngle * 1000));
+
 
     //Read RPS from left VESC Inverter
     newMotorSpeedL = (g_motorCtrlL->getCurrentRPS());
-    g_RTTerminal->printf("LeftRPS: %6d ",
-                         static_cast<int32_t>(motorSpeedL));
 
-    //update MOtorspeed filtered
+
+    //update Motorspeed filtered
     constexpr const float FILTERSIZE = 32;
     motorSpeedL -= motorSpeedL / FILTERSIZE;
     motorSpeedL += newMotorSpeedL / FILTERSIZE;
@@ -219,31 +233,21 @@ void loop(void)
     // update the current Value of the PID Controllers and compute!
     currentValue1 = VehicleAngle;
     currentValue2 = motorSpeedL;
-
     setValue1 = 0;
     setValue2 = 0;
     pid1.compute();
     pid2.compute();
 
+    //Torque for Motors is the Sum of both controller outputs.
     torqueTotal = outValue1 + outValue2;
 
-    g_RTTerminal->printf("PID1: %6d mNm ",
-                         static_cast<int32_t>(outValue1 * 1000));
-    g_RTTerminal->printf("PID2: %6d mNm ",
-                         static_cast<int32_t>(outValue2 * 1000));
-    g_RTTerminal->printf("Total Torque: %6d mNm ",
-                         static_cast<int32_t>(torqueTotal * 1000));
-
-    //Read torque bias from Poti1 and calculate/map torque bias afterwards.
+    //Read torque bias from Poti1 and calculate/map torque bias afterwards. Then send to RTT!
     float valuePoti1 = poti1.getValue();
-    g_RTTerminal->printf("Poti1 raw: %d ",
-                         static_cast<uint32_t>(valuePoti1));
 
     torqueBias = valuePoti1;
     torqueBias = (torqueBias - 2048) * 0.3 / 2048;
 
-    g_RTTerminal->printf("torqueBias: %d mNm",
-                         static_cast<int32_t>(torqueBias * 1000));
+
 
     //Add torque bias (important for cornering) to both left and right resulting torque values
     //Positive Torque Bias will result in clockwise rotation of the vehicle
@@ -252,19 +256,63 @@ void loop(void)
     torqueLeft = torqueTotal + torqueBias;
     torqueRight = torqueTotal - torqueBias;
 
+
+
     //update torque. Negative Torque for left inverter.
     g_motorCtrlL->setTorque(torqueLeft * balancingEnabled);
     g_motorCtrlR->setTorque(torqueRight * balancingEnabled);
 
-    //Debug output
-    g_RTTerminal->printf("MLinks:%6dmNm ",
+    //Receive new PID Params from Tracing
+    //receiveCommand();
+
+	//GPIO Timing Ausgabe
+#ifdef GPIOTiming
+	led3 = false;
+	led4 = true;
+#endif
+
+    //Print if Powertrain is enabled to RTT
+    g_RTTerminal->printf("Enabled;%6d;",
+                         static_cast<int32_t>(balancingEnabled));
+    //Print current sysTick to RTT
+    g_RTTerminal->printf("Systick;%8d;",
+                         static_cast<int32_t>(os::Task::getTickCount()));
+    g_RTTerminal->printf("DeltaSystick;%8d;",
+                         static_cast<int32_t>(os::Task::getTickCount() - sysTickOld));
+
+    g_RTTerminal->printf("Gravityx;%6d;",
+                         static_cast<int32_t>(gravity.x() * 1000));
+
+    g_RTTerminal->printf("Winkel;%6d;",
+                         static_cast<int32_t>(VehicleAngle * 1000));
+
+    g_RTTerminal->printf("LeftRPS;%6d;",
+                         static_cast<int32_t>(motorSpeedL));
+
+    g_RTTerminal->printf("Poti1;%d;",
+                         static_cast<uint32_t>(valuePoti1));
+
+    g_RTTerminal->printf("torqueBias;%d;",
+                         static_cast<int32_t>(torqueBias * 1000));
+
+    g_RTTerminal->printf("PID1;%6d;",
+                         static_cast<int32_t>(outValue1 * 1000));
+    g_RTTerminal->printf("PID2;%6d;",
+                         static_cast<int32_t>(outValue2 * 1000));
+    g_RTTerminal->printf("TotalTorque;%6d;",
+                         static_cast<int32_t>(torqueTotal * 1000));
+
+    //Output individual Torques to RTT
+    g_RTTerminal->printf("MLinks;%6d;",
                          static_cast<int32_t>(torqueLeft * 1000));
-    g_RTTerminal->printf("MRechts:%6dmNm\n",
+    g_RTTerminal->printf("MRechts;%6d;\n",
                          static_cast<int32_t>(torqueRight * 1000));
 
-    //Receive new PID Params from Tracing
-    receiveCommand();
-
+	//GPIO Timing Ausgabe
+#ifdef GPIOTiming
+	led4 = false;
+	led5 = true;
+#endif
     //has to be the same valu e as the PID Controller sample time
     os::ThisTask::sleep(WAITTIME);
 }
@@ -274,24 +322,60 @@ constexpr const dev::Light& headLight = dev::Factory<dev::Light>::get<interface:
 
 void setup_LED(void)
 {
-    /*for (uint8_t i = 0; i < 255; i++) {
+    for (uint8_t i = 0; i < 255; i++) {
         backLight.setColor({0, 0, i});
         headLight.setColor({0, 0, i});
 
         os::ThisTask::sleep(std::chrono::milliseconds(10));
-    }*/
+    }
     backLight.setColor({30, 30, 30});
     headLight.setColor({30, 30, 30});
 }
-
 void loop_LED(void)
 {
-    os::ThisTask::sleep(std::chrono::milliseconds(500));
-    backLight.setColor({30, 30, 30});
-    headLight.setColor({30, 30, 30});
-    os::ThisTask::sleep(std::chrono::milliseconds(500));
-    backLight.setColor({0, 0, 0});
-    headLight.setColor({0, 0, 0});
+    static size_t state = 0;
+
+    Eigen::Vector3f gravity = g_mpu->getGravity();
+
+    float tempvehicleAngle = gravity.x();
+    float tempvehicleRotation = std::abs(gravity.y());
+
+    //First, check if Vehicle is folded, if so display charging animation.
+    if (tempvehicleRotation > 0.6) {
+        //charging
+    	//value 40 determines time. smaller = faster.
+        constexpr const size_t timeForOneLed_ms = 40 / 10;
+        static size_t iteration = 0;
+
+        if (iteration == 0) {
+            state = ++state;
+            if (state > 21) {state = 21;}
+
+            backLight.displayNumber(state, {0, 30, 0});
+            headLight.displayNumber(state, {0, 30, 0});
+        }
+
+        iteration++;
+        iteration = iteration % timeForOneLed_ms;
+    } else {
+        state = 0;
+        static bool direction = true;
+
+        if ((tempvehicleAngle > 0.02) && (direction == true)) {
+            direction = false;
+        } else if ((tempvehicleAngle < -0.1) && (direction == false)) {
+            direction = true;
+        }
+
+        if (!direction) {
+            headLight.setColor({80, 75, 80});
+            backLight.setColor({120, 0, 0});
+        } else {
+        	backLight.setColor({80, 75, 80});
+        	headLight.setColor({120, 0, 0});
+        }
+    }
+    os::ThisTask::sleep(std::chrono::milliseconds(10));
 }
 
 const os::TaskEndless app::balanceTest("PMD_Demo", 4096,
